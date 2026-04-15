@@ -1,0 +1,20 @@
+[package]
+name = "q_test_harness"
+version = "0.1.0"
+edition = "2024"
+description = "Simple test harness for Bevy applications."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/cubething-qproj/q_test_harness"
+
+[dependencies]
+bevy = { version = "0.18.0", default-features = false, features = ["default_app", "default_platform"] }
+bevy_asset = {version="0.18.0", features = ["multi_threaded"]}
+
+[dev-dependencies]
+log = "0.4.29"
+
+[lints]
+rust.unexpected_cfgs = { level = "warn", check-cfg = ["cfg(bevy_lint)"] }
+clippy.too_many_arguments = "allow"
+clippy.type_complexity = "allow"
+clippy.nonstandard_macro_braces = "warn"
