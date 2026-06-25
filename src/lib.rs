@@ -16,7 +16,7 @@ pub mod prelude {
 use bevy::{
     app::{FixedMain, ScheduleRunnerPlugin},
     diagnostic::FrameCountPlugin,
-    ecs::schedule::ExecutorKind,
+    ecs::schedule::{MultiThreadedExecutor, SingleThreadedExecutor},
     log::{DEFAULT_FILTER, LogPlugin},
     state::app::StatesPlugin,
     time::TimePlugin,
@@ -24,11 +24,30 @@ use bevy::{
 
 use crate::prelude::*;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ExecutorKind {
+    SingleThreaded,
+    MultiThreaded,
+}
+
+impl ExecutorKind {
+    fn apply(self, schedule: &mut bevy::ecs::schedule::Schedule) {
+        match self {
+            ExecutorKind::SingleThreaded => {
+                schedule.set_executor(SingleThreadedExecutor::new());
+            }
+            ExecutorKind::MultiThreaded => {
+                schedule.set_executor(MultiThreadedExecutor::new());
+            }
+        }
+    }
+}
+
 macro_rules! configure_sets {
     ($app:expr, $kind:expr, $($set:ident),*) => {
         $(
             if let Some(set) = $app.get_schedule_mut($set) {
-                set.set_executor_kind($kind);
+                $kind.apply(set);
             }
         )*
     };
