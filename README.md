@@ -38,7 +38,7 @@ This is a simple test harness for bevy projects.
 
 | q_test_harness | bevy |
 | ----------------- | ---- |
-| main              | 0.18 |
+| main              | 0.19 |
 
 
 ## Testing patterns
