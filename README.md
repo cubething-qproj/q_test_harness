@@ -2,7 +2,7 @@
 <img src="https://raw.githubusercontent.com/cubething-qproj/q_test_harness/refs/heads/main/.doc/q_test_harness.png" height=300 alt="Illustration of a common robin with worms in its mouth. Text, 'bevy test harness'" title="test harness logo" />
 </div>
 
-[ ![Coveralls](https://img.shields.io/coverallsCoverage/github/ada-x64/qproj?branch=q_test_harness) ]( https://coveralls.io/github/ada-x64/qproj?branch=q_test_harness )
+[![Coverage Status](https://coveralls.io/repos/github/cubething-qproj/q_test_harness/badge.svg)](https://coveralls.io/github/cubething-qproj/q_test_harness)
 
 This is a simple test harness for bevy projects.
 
