@@ -1,6 +1,7 @@
 mod app_ext;
 mod commands_ext;
 mod data;
+pub mod input;
 mod log;
 mod util;
 
@@ -8,6 +9,7 @@ pub mod prelude {
     pub use super::app_ext::*;
     pub use super::commands_ext::*;
     pub use super::data::*;
+    pub use super::input::*;
     pub use super::log::*;
     pub use super::*;
     pub(crate) use bevy::prelude::*;
@@ -104,6 +106,7 @@ impl Plugin for TestRunnerPlugin {
             AssetPlugin::default(),
             StatesPlugin,
         ));
+
         app.init_resource::<LogTestSteps>();
         app.init_resource::<TestRunnerTimeout>();
 
