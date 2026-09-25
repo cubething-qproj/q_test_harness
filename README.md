@@ -10,6 +10,7 @@ This is a simple test harness for bevy projects.
 
 - [x] Utility functions for easy, step-based testing.
 - [x] Timeout functionality
+- [x] Input helpers
 - [x] Logging utilities
   - [x] Log the world hierarchy in a simple and readable format
   - [ ] Add names for common types
@@ -43,49 +44,72 @@ This is a simple test harness for bevy projects.
 
 ## Testing patterns
 
-There are to main ways to run tests. The first is with a manual-update style.
-This is typically what you see in something like the official bevy tests, where
-we want to guarantee a specific number of updates has occured before the next
-assertion. As a nice side-effect, this guarantees that the test takes as little
-time as possible.
+Downstream tests use an ordinary `App` with `TestRunnerPlugin` and run the normal
+app loop until a system writes `AppExit`. For example, `q_term` uses `add_step`
+for staged checks; `q_screens` also checks results inside screen lifecycle callbacks.
 
 ```rust
-#[test]
-fn pattern_1() {
-    let mut app = App::new();
-    // add plugins etc.
-    app.update();
-    assert!(something);
-    // repeat as needed
-}
-```
+use bevy::prelude::*;
+use q_test_harness::prelude::*;
 
-The second style of test requires a nondeterministic number of updates to pass
-before the next assertion can be called, i.e. when the test requires I/O (such
-as asset loading). These tests require some more setup.
-
-```rust
 #[test]
-fn pattern_2() {
+fn spawns_subject() {
     let mut app = App::new();
-    // plugins etc.
-    // then set up systems
-    let a = |mut commmands: Commands| {
-        // do this to end the test successfully
-        commands.write_message(AppExit::Success);
-    }
-    let b = |mut commmands: Commands| {
-        // do this to end the test in failure
-        error!("Something went wrong!")
-        commands.write_message(AppExit::error());
-    }
-    app.add_systems(PostUpdate, (a,b).chain());
+    app.add_plugins(TestRunnerPlugin::default());
+    app.add_systems(Startup, |mut commands: Commands| {
+        commands.spawn(Name::new("subject"));
+    });
+    app.add_step(0, |names: Query<&Name>, mut commands: Commands| {
+        if commands.assert(names.iter().any(|name| name.as_str() == "subject"), "subject missing") {
+            commands.write_message(AppExit::Success);
+        }
+    });
     assert!(app.run().is_success());
 }
 ```
 
-Note that in pattern 2 you _cannot_ use assertions as bevy systems run in
-separate threads. Panicking will not kill the process, but only the thread.
+`add_step(n, ...)` runs in `PostUpdate` while `State<Step>` is `Step(n)` (initially
+zero). A step can wait for readiness, then advance with `NextState<Step>`;
+advancement is not automatic. `commands.assert` logs failure and writes an error
+exit; successful completion is explicit. The runner times out stalled tests.
+
+See `q_term/tests/term/io_boundary.rs` and
+`q_screens/tests/screens/entity_scope.rs` for real multi-step/lifecycle examples.
+
+### What sort of test should I use?
+
+Choose the smallest test that covers the contract: selected schedules for precise
+mechanics, full app updates for lifecycle/scheduling integration, and bounded
+readiness waits for asynchronous I/O. Full updates can also use a controlled clock
+with Bevy's `TimeUpdateStrategy::ManualDuration`; waiting until success is not a
+substitute for asserting a frame deadline. With manual time, the harness timeout
+measures simulated elapsed time, so retain an external wall-clock test timeout.
+
+### Testing Input
+
+Add `InputTestPlugin` alongside `TestRunnerPlugin` or `MinimalPlugins`.
+It initializes manual input and supplies a synthetic primary window if needed.
+`AppExt` provides `key`, `mouse`, `motion`, and `step` on the ordinary `App`.
+
+```rust
+use std::time::Duration;
+use bevy::{ecs::schedule::ScheduleLabel, prelude::*};
+use q_test_harness::prelude::*;
+
+let mut app = App::new();
+app.add_plugins((MinimalPlugins, InputTestPlugin));
+// Add the plugins/systems under test before finishing plugins.
+app.finish();
+app.cleanup();
+app.key(KeyCode::KeyW, true);
+app.step(Duration::from_millis(16), [PreUpdate.intern(), Update.intern()]);
+app.key(KeyCode::KeyW, false);
+```
+
+`step` advances real/generic time and runs only the selected schedules, then clears
+transient input while preserving held buttons. It is **not a full app update**:
+startup, message maintenance, and virtual/fixed time are not advanced automatically.
+Do not add `InputPlugin` when supplying input manually; it overwrites that input.
 
 ## About the bird
 
