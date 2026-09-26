@@ -13,6 +13,9 @@ bevy_asset = {version="0.19.0", features = ["multi_threaded"]}
 [dev-dependencies]
 log = "0.4.29"
 
+[features]
+dylib = ["bevy/dynamic_linking"]
+
 [lints]
 rust.unexpected_cfgs = { level = "warn", check-cfg = ["cfg(bevy_lint)"] }
 clippy.too_many_arguments = "allow"
