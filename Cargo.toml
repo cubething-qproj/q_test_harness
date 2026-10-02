@@ -11,6 +11,7 @@ bevy = { version = "0.19.0", default-features = false, features = ["default_app"
 
 [features]
 dylib = ["bevy/dynamic_linking"]
+default = ["dylib"]
 
 [lints]
 clippy.too_many_arguments = "allow"
