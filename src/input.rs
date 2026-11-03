@@ -1,6 +1,6 @@
 use bevy::{
     input::{
-        mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll},
+        mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll, MouseScrollPixelsPerLine},
         touch::Touches,
     },
     prelude::*,
@@ -26,6 +26,7 @@ impl Plugin for InputTestPlugin {
             .init_resource::<ButtonInput<MouseButton>>()
             .init_resource::<AccumulatedMouseMotion>()
             .init_resource::<AccumulatedMouseScroll>()
+            .init_resource::<MouseScrollPixelsPerLine>()
             .init_resource::<Touches>()
             .add_message::<AppExit>();
     }
